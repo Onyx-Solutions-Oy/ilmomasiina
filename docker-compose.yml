@@ -28,12 +28,12 @@ services:
       dockerfile: Dockerfile
       args:
         # Standard branding arguments
-        BRANDING_HEADER_TITLE_TEXT: ${BRANDING_HEADER_TITLE_TEXT:-Fundi ilmomasiina}
+        BRANDING_HEADER_TITLE_TEXT: ${BRANDING_HEADER_TITLE_TEXT:-Ilmomasiina}
         BRANDING_HEADER_TITLE_TEXT_SHORT: ${BRANDING_HEADER_TITLE_TEXT_SHORT:-Ilmomasiina}
         BRANDING_FOOTER_GDPR_TEXT: ${BRANDING_FOOTER_GDPR_TEXT:-Tietosuoja}
-        BRANDING_FOOTER_GDPR_LINK: ${BRANDING_FOOTER_GDPR_LINK:-http://fundi.fi/privacy}
-        BRANDING_FOOTER_HOME_TEXT: ${BRANDING_FOOTER_HOME_TEXT:-Fundi}
-        BRANDING_FOOTER_HOME_LINK: ${BRANDING_FOOTER_HOME_LINK:-http://fundi.fi}
+        BRANDING_FOOTER_GDPR_LINK: ${BRANDING_FOOTER_GDPR_LINK:-http://ilmomasiina.fi/privacy}
+        BRANDING_FOOTER_HOME_TEXT: ${BRANDING_FOOTER_HOME_TEXT:-Ilmomasiina}
+        BRANDING_FOOTER_HOME_LINK: ${BRANDING_FOOTER_HOME_LINK:-http://ilmomasiina.fi}
         BRANDING_LOGIN_PLACEHOLDER_EMAIL: ${BRANDING_LOGIN_PLACEHOLDER_EMAIL:-admin@example.com}
 
         # Customization arguments
