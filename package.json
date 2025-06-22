@@ -1,0 +1,19 @@
+{
+  "name": "ilm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "customize": "node scripts/customize.js",
+    "customize:icons": "node scripts/customize.js --icons-only",
+    "customize:styles": "node scripts/customize.js --styles-only",
+    "customize:clean": "node scripts/customize.js --clean"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "sharp": "^0.33.0"
+  }
+}

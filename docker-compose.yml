@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ilmomasiina-postgres
+    environment:
+      POSTGRES_DB: ilmomasiina
+      POSTGRES_USER: ilmo_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ilmo_user -d ilmomasiina"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ilmomasiina-network
+
+  # Customized Ilmomasiina application
+  ilmomasiina:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Standard branding arguments
+        BRANDING_HEADER_TITLE_TEXT: ${BRANDING_HEADER_TITLE_TEXT:-Fundi ilmomasiina}
+        BRANDING_HEADER_TITLE_TEXT_SHORT: ${BRANDING_HEADER_TITLE_TEXT_SHORT:-Ilmomasiina}
+        BRANDING_FOOTER_GDPR_TEXT: ${BRANDING_FOOTER_GDPR_TEXT:-Tietosuoja}
+        BRANDING_FOOTER_GDPR_LINK: ${BRANDING_FOOTER_GDPR_LINK:-http://fundi.fi/privacy}
+        BRANDING_FOOTER_HOME_TEXT: ${BRANDING_FOOTER_HOME_TEXT:-Fundi}
+        BRANDING_FOOTER_HOME_LINK: ${BRANDING_FOOTER_HOME_LINK:-http://fundi.fi}
+        BRANDING_LOGIN_PLACEHOLDER_EMAIL: ${BRANDING_LOGIN_PLACEHOLDER_EMAIL:-admin@example.com}
+
+        # Customization arguments
+        ICON_URL: ${ICON_URL}
+        ICON_BLACK_URL: ${ICON_BLACK_URL}
+        CUSTOM_PRIMARY_COLOR: ${CUSTOM_PRIMARY_COLOR:-#0a0d10}
+        CUSTOM_SECONDARY_COLOR: ${CUSTOM_SECONDARY_COLOR:-#0a0d10}
+        CUSTOM_RED_COLOR: ${CUSTOM_RED_COLOR:-#d74949}
+        CUSTOM_GREEN_COLOR: ${CUSTOM_GREEN_COLOR:-#319236}
+        CUSTOM_TEXT_MUTED_COLOR: ${CUSTOM_TEXT_MUTED_COLOR:-#888}
+        CUSTOM_SECONDARY_BACKGROUND_COLOR: ${CUSTOM_SECONDARY_BACKGROUND_COLOR:-#f1f1f1}
+        CUSTOM_SECONDARY_TEXT_COLOR: ${CUSTOM_SECONDARY_TEXT_COLOR:-#7a7a7a}
+        CUSTOM_FORCE_LINK_UNDERLINE: ${CUSTOM_FORCE_LINK_UNDERLINE:-true}
+        CUSTOM_LIGHTER_PRIMARY_HOVER: ${CUSTOM_LIGHTER_PRIMARY_HOVER:-true}
+        CUSTOM_LIGHTER_SECONDARY_HOVER: ${CUSTOM_LIGHTER_SECONDARY_HOVER:-true}
+        CUSTOM_HEADER_LOGO: ${CUSTOM_HEADER_LOGO:-true}
+
+        # Other build args
+        PATH_PREFIX: ${PATH_PREFIX:-}
+        API_URL: ${API_URL:-}
+        SENTRY_DSN: ${SENTRY_DSN:-}
+        VERSION: ${VERSION:-latest}
+    container_name: ilmomasiina-app
+    environment:
+      - DB_DIALECT=postgres
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ilmomasiina-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ilmomasiina-network:
+    driver: bridge

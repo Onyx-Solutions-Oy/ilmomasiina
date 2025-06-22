@@ -1,0 +1,3 @@
+[submodule "ilmomasiina"]
+	path = ilmomasiina
+	url = https://github.com/Tietokilta/ilmomasiina.git
