@@ -3,8 +3,8 @@
 # Build stage:
 FROM node:20-alpine AS builder
 
-# Install required packages for customization
-RUN apk add --no-cache brotli
+# Install required packages for customization and git
+RUN apk add --no-cache brotli git
 
 # Build-time env variables
 ARG SENTRY_DSN
@@ -36,23 +36,29 @@ ARG CUSTOM_HEADER_LOGO
 
 WORKDIR /opt/ilmomasiina
 
-# Copy customization scripts and root package files first
+# Initialize git repository and configure user (required for git operations)
+RUN git init && \
+    git config user.email "docker@build.local" && \
+    git config user.name "Docker Build"
+
+# Copy git configuration and initialize submodule
+COPY .gitmodules /opt/ilmomasiina/.gitmodules
+
+# Copy customization scripts and root package files
 COPY scripts/ /opt/ilmomasiina/scripts/
 COPY package.json pnpm-lock.yaml /opt/ilmomasiina/
 
-# Copy files needed for dependency installation
-COPY --parents .eslint* ilmomasiina/package.json ilmomasiina/pnpm-*.yaml ilmomasiina/packages/*/package.json /opt/ilmomasiina/
-
-# Install customization dependencies first
+# Install customization dependencies and initialize submodules
 RUN corepack enable && pnpm install --frozen-lockfile
 
-# Install ilmomasiina dependencies (we're running as root, so the postinstall script doesn't run automatically)
+# Clone the submodule
+RUN git submodule add https://github.com/Tietokilta/ilmomasiina.git ilmomasiina && \
+    git submodule update --init --recursive
+
+COPY .eslint* /opt/ilmomasiina/
 RUN cd ilmomasiina && pnpm install --frozen-lockfile
 
-# Copy rest of source files
-COPY ilmomasiina/packages /opt/ilmomasiina/ilmomasiina/packages
-
-# Run customization process using Node.js script
+# Run customization process
 RUN if [ -n "$ICON_URL" ]; then \
         echo "Running customization process..." && \
         export ICON_URL="$ICON_URL" && \
@@ -86,13 +92,13 @@ RUN if [ -d "custom/public" ] && [ "$(ls -A custom/public)" ]; then \
         cp custom/public/*.png custom/public/*.ico ilmomasiina/packages/ilmomasiina-frontend/public/ 2>/dev/null || true; \
     fi
 
-# Replace logo.svg if it exists (BEFORE building)
+# Replace logo.svg if it exists
 RUN if [ -f "custom/public/logo.svg" ]; then \
         echo "Replacing logo.svg with customized version" && \
         cp custom/public/logo.svg ilmomasiina/packages/ilmomasiina-frontend/src/assets/logo.svg; \
     fi
 
-# Default to production (after pnpm install, so we get our types etc.)
+# Default to production
 ENV NODE_ENV=production
 
 # Build all packages
@@ -117,14 +123,14 @@ ENV HOST=0.0.0.0
 
 WORKDIR /opt/ilmomasiina
 
-# Copy files needed for dependency installation
-COPY --parents ilmomasiina/package.json ilmomasiina/pnpm-*.yaml ilmomasiina/packages/*/package.json /opt/ilmomasiina/
+# Copy package.json files and install production dependencies
+COPY --from=builder /opt/ilmomasiina/ilmomasiina/package.json /opt/ilmomasiina/ilmomasiina/package.json
+COPY --from=builder /opt/ilmomasiina/ilmomasiina/pnpm-*.yaml /opt/ilmomasiina/ilmomasiina/
+COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/package.json /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/package.json
+COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-models/package.json /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-models/package.json
 
-# Install dependencies for backend only
+# Install production dependencies
 RUN cd ilmomasiina && corepack enable && pnpm install --frozen-lockfile --prod --filter @tietokilta/ilmomasiina-backend --filter @tietokilta/ilmomasiina-models
-
-# Copy rest of source files
-COPY ilmomasiina/packages /opt/ilmomasiina/ilmomasiina/packages
 
 # Copy compiled ilmomasiina-models from build stage
 COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-models/dist /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-models/dist

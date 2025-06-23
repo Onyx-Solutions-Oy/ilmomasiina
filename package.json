@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "init": "git submodule update --init --recursive",
     "customize": "node scripts/customize.js",
     "customize:icons": "node scripts/customize.js --icons-only",
     "customize:styles": "node scripts/customize.js --styles-only",
