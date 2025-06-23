@@ -119,7 +119,8 @@ ENV VERSION=$VERSION
 ENV NODE_ENV=production
 
 # Listen at 0.0.0.0 when inside Docker
-ENV HOST=0.0.0.0
+ARG HOST
+ENV HOST=$HOST
 
 WORKDIR /opt/ilmomasiina
 
