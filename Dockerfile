@@ -55,7 +55,7 @@ RUN corepack enable && pnpm install --frozen-lockfile
 RUN git submodule add https://github.com/Tietokilta/ilmomasiina.git ilmomasiina && \
     git submodule update --init --recursive
 
-COPY .eslint* /opt/ilmomasiina/
+# Install ilmomasiina dependencies (submodule is now available)
 RUN cd ilmomasiina && pnpm install --frozen-lockfile
 
 # Run customization process
