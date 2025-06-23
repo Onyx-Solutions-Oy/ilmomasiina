@@ -139,6 +139,9 @@ COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-models/dis
 # Copy built backend from build stage
 COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/dist /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/dist
 
+# Copy email templates from build stage 
+COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/emails /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-backend/emails
+
 # Copy built frontend from build stage
 COPY --from=builder /opt/ilmomasiina/ilmomasiina/packages/ilmomasiina-frontend/build /opt/ilmomasiina/frontend
 
